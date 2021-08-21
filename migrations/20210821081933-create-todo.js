@@ -11,8 +11,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
-      isDone: {
-        type: Sequelize.BOOLEAN
+      isDone:{
+        type:Sequelize.BOOLEAN,
+        defaultValue:false
       },
       createdAt: {
         allowNull: false,
