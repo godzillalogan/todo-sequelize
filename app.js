@@ -3,47 +3,42 @@ const exphbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 const methodOverride = require('method-override')
 const bcrypt = require('bcryptjs')
+const session = require('express-session')
+const passport = require('passport') // 是把 Passport 套件本身載入進來
+const flash = require('connect-flash')
+
+
+const usePassport = require('./config/passport')//是載入一包 Passport 設定檔，要寫在 express-session 以後
+const routes = require('./routes')
 
 const app = express()
 const PORT = 3000
 
-const db = require('./models')
-const Todo = db.Todo
-const User = db.User
+
+// const User = db.User
 
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
 app.set('view engine', 'hbs')
+app.use(session({
+  secret: 'ThisIsMySecret',
+  resave: false,
+  saveUninitialized: true
+}))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(methodOverride('_method'))
 
-app.get('/', (req, res) => {
-  res.send('hello world')
+
+usePassport(app) // 呼叫 Passport 函式並傳入 app，這條要寫在路由之前
+app.use(flash())
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.isAuthenticated()
+  res.locals.user = req.user
+  res.locals.success_msg = req.flash('success_msg')
+  res.locals.warning_msg = req.flash('warning_msg')
+  next()
 })
 
-app.get('/users/login', (req, res) => {
-  res.render('login')
-})
-
-app.post('/users/login', (req, res) => {
-  res.send('login')
-})
-
-app.get('/users/register', (req, res) => {
-  res.render('register')
-})
-
-app.post('/users/register', (req, res) => {
-  const { name, email, password, confirmPassword } = req.body
-  console.log('name',name)
-  console.log('email', email)
-  console.log('password', password)
-  User.create({ name, email, password })
-    .then(user => res.redirect('/'))
-})
-
-app.get('/users/logout', (req, res) => {
-  res.send('logout')
-})
+app.use(routes)
 
 app.listen(PORT, () => {
   console.log(`App is running on http://localhost:${PORT}`)
