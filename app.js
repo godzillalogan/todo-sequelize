@@ -7,12 +7,15 @@ const session = require('express-session')
 const passport = require('passport') // 是把 Passport 套件本身載入進來
 const flash = require('connect-flash')
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 
 const usePassport = require('./config/passport')//是載入一包 Passport 設定檔，要寫在 express-session 以後
 const routes = require('./routes')
 
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT
 
 
 // const User = db.User
@@ -20,7 +23,7 @@ const PORT = 3000
 app.engine('hbs', exphbs({ defaultLayout: 'main', extname: '.hbs' }))
 app.set('view engine', 'hbs')
 app.use(session({
-  secret: 'ThisIsMySecret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }))
